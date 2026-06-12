@@ -1,7 +1,9 @@
 from ingest_arxiv import app
 
-state_relevant = {"paper_content": "This paper proposes a new architecture for Large Language Models..."}
-state_irrelevant = {"paper_content": "World Cup."}
+def run_test(content, description):
+    print(f"\n--- Testing: {description} ---")
+    result = app.invoke({"paper_content": content})
+    print(f"Decision: {result.get('route', 'No route found')}")
 
-result = app.invoke(state_relevant)
-print(f"Result for relevant: {result['route']}")
+run_test("Agentic AI Tracker Project", "Relevant AI Paper")
+run_test("Chairs and tables are good", "Irrelevant Information to the World Cup")
