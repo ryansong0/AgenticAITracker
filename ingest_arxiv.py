@@ -43,6 +43,7 @@ def summarizer_node(state: TrackerState):
 
 # if "agentic" is in the summary, analyze it further
 def route_relevance(state: TrackerState):
+    print(f"--- Routing Paper: {state['paper_content'][:50]}... ---")
     last_summary = state['summaries'][-1].lower()
     if "agentic" in last_summary:
         return "analyze"
