@@ -2,6 +2,10 @@ import arxiv
 import json
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, START, END
+from langchain_ollama import ChatOllama
+
+llm = ChatOllama(model="llama3.2")
+
 
 class TrackerState(TypedDict):
     raw_data: List[dict] # What you fetch
