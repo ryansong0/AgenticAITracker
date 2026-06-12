@@ -51,11 +51,27 @@ workflow = StateGraph(TrackerState)
 # adding the node
 workflow.add_node("ingestion", ingestion_node)
 workflow.add_node("summarizer", summarizer_node)
+workflow.add_node("analyze", analysis_node)
 
 # setting the path
 workflow.add_edge(START, "ingestion")
 workflow.add_edge("ingestion", "summarizer")
-workflow.add_edge("summarizer", END)
+
+
+workflow.add_node("router", route_relevance) # Optional: only if you want a dedicated router node, otherwise use the function directly in edges
+
+# adding the conditional edges
+workflow.add_conditional_edges(
+    "summarizer",
+    route_relevance,
+    {
+        "analyze": "analyze",
+        "end": END
+    }
+)
+
+# adding the analysis end point
+workflow.add_edge("analyze", END)
 
 # compiling
 app = workflow.compile()
