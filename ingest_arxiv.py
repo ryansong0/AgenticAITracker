@@ -83,6 +83,12 @@ def route_relevance(state: TrackerState):
 
 def analysis_node(state: TrackerState):
     print("--- PERFORMING DEEP ANALYSIS ---")
+    # get URL of latest paper being analyzed
+    if state['raw_data']:
+        latest_url = state['raw_data'][-1]['url']
+        mark_as_processed(latest_url)
+        print(f"--- Paper marked as processed: {latest_url} ---")
+
     scores = state.get('novelty_scores', [])
     scores.append(0.95) # fake score
     return {"novelty_scores": scores}
