@@ -1,6 +1,7 @@
 import arxiv
 import json
-from typing import TypedDict, List
+from pydantic import BaseModel, Field
+from typing import TypedDict, List, Literal
 from langgraph.graph import StateGraph, START, END
 from langchain_ollama import ChatOllama
 
@@ -10,11 +11,16 @@ llm = ChatOllama(
     temperature = 0  
 ) 
 
+class RouteDecision(BaseModel):
+    decision: Literal["relevant", "irrelevant"] = Field(description = "Must be 'relevant' or 'irrelevant'")
+
+structured_llm = llm.with_structured_output(RouteDecision)
 
 class TrackerState(TypedDict):
     raw_data: List[dict] # What you fetch
     summaries: List[str] # What your LLM adds
     novelty_scores: List[float] # What your analyzer adds
+    paper_content: Optional[str]
 
 def fetch_arxiv_papers(query, max_results = 3):
     search = arxiv.Search(
@@ -43,16 +49,19 @@ def summarizer_node(state: TrackerState):
 
 # if "agentic" is in the summary, analyze it further
 def route_relevance(state: TrackerState):
-    print(f"--- Routing Paper: {state['paper_content'][:50]}... ---")
-    last_summary = state['summaries'][-1].lower()
-    if "agentic" in last_summary:
+    content = state.get('paper_content') or ""
+    print(f"--- Routing Paper: {content[:50]}... ---")
+    last_summary = (state.get('summaries') or [""])[-1].lower()    
+    
+    if "agentic" in content.lower() or "agentic" in last_summary:
         return "analyze"
     return "end"
 
 def analysis_node(state: TrackerState):
     print("--- PERFORMING DEEP ANALYSIS ---")
-    state['novelty_scores'].append(0.95) # fake score
-    return {"novelty_scores": state['novelty_scores']}
+    scores = state.get('novelty_scores', [])
+    scores.append(0.95) # fake score
+    return {"novelty_scores": scores}
 
 # building the graph
 workflow = StateGraph(TrackerState)
@@ -60,14 +69,13 @@ workflow = StateGraph(TrackerState)
 # adding the node
 workflow.add_node("ingestion", ingestion_node)
 workflow.add_node("summarizer", summarizer_node)
+workflow.add_node("router", route_relevance)
 workflow.add_node("analyze", analysis_node)
 
 # setting the path
 workflow.add_edge(START, "ingestion")
 workflow.add_edge("ingestion", "summarizer")
 
-
-workflow.add_node("router", route_relevance) # Optional: only if you want a dedicated router node, otherwise use the function directly in edges
 
 # adding the conditional edges
 workflow.add_conditional_edges(
