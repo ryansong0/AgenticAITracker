@@ -8,6 +8,28 @@ class TrackerState(TypedDict):
     summaries: List[str] # What your LLM adds
     novelty_scores: List[float] # What your analyzer adds
 
+from langgraph.graph import StateGraph, START, END
+
+# defining the node
+def ingestion_node(state: TrackerState):
+    print("--- FETCHING DATA ---")
+    # call existing function here
+    papers = fetch_arxiv_papers() 
+    return {"raw_data": papers}
+
+# building the graph
+workflow = StateGraph(TrackerState)
+
+# adding the node
+workflow.add_node("ingestion", ingestion_node)
+
+# setting the path
+workflow.add_edge(START, "ingestion")
+workflow.add_edge("ingestion", END)
+
+# compiling
+app = workflow.compile()
+
 def fetch_arxiv_papers(query, max_results = 3):
     search = arxiv.Search(
         query = query,
