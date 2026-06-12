@@ -8,56 +8,50 @@ class TrackerState(TypedDict):
     summaries: List[str] # What your LLM adds
     novelty_scores: List[float] # What your analyzer adds
 
-from langgraph.graph import StateGraph, START, END
-
-# defining the node
-def ingestion_node(state: TrackerState):
-    print("--- FETCHING DATA ---")
-    # call existing function here
-    papers = fetch_arxiv_papers() 
-    return {"raw_data": papers}
-
-# building the graph
-workflow = StateGraph(TrackerState)
-
-# adding the node
-workflow.add_node("ingestion", ingestion_node)
-
-# setting the path
-workflow.add_edge(START, "ingestion")
-workflow.add_edge("ingestion", END)
-
-# compiling
-app = workflow.compile()
-
 def fetch_arxiv_papers(query, max_results = 3):
     search = arxiv.Search(
         query = query,
         max_results = max_results,
         sort_by = arxiv.SortCriterion.SubmittedDate
     )
-
     client = arxiv.Client()
-    papers_list = []
+    return[{"title": r.title,
+            "published": str(r.published.date()),
+            "summary": r.summary,
+            "url": r.entry_id}
+            for r in client.results(search)]
 
-    print(f"--- Fetching the latest papers for: '{query}' ---\n")
+# defining the node
+def ingestion_node(state: TrackerState):
+    print("--- FETCHING DATA ---")
+    # call existing function here
+    papers = fetch_arxiv_papers("Agentic AI") 
+    return {"raw_data": papers}
 
-    for result in client.results(search):
-        paper_data = {
-            "title": result.title,
-            "published": str(result.published.date()),
-            "summary": result.summary,
-            "url": result.entry_id
-        }
-        papers_list.append(paper_data)
+def summarizer_node(state: TrackerState):
+    print("--- SUMMARIZING PAPERS ---")
+    summaries = [f"Summary of {paper['title']}" for paper in state['raw_data']]
+    return {"summaries": summaries}
 
-        print(f"Fetched: {result.title}")
+# building the graph
+workflow = StateGraph(TrackerState)
 
-    with open('papers.json', 'w', encoding='utf-8') as f:
-        json.dump(papers_list, f, indent=4)
+# adding the node
+workflow.add_node("ingestion", ingestion_node)
+workflow.add_node("summarizer", summarizer_node)
 
-    print(f"\nSuccessfully saved {len(papers_list)} papers to papers.json!")
+# setting the path
+workflow.add_edge(START, "ingestion")
+workflow.add_edge("ingestion", "summarizer")
+workflow.add_edge("summarizer", END)
 
+# compiling
+app = workflow.compile()
 
 if __name__ == "__main__":
-    fetch_arxiv_papers("Agentic AI")
+    initial_state = {"raw_data": [], "summaries": [], "novelty_scores": []}
+    final_state = app.invoke(initial_state)
+    
+    print("\n--- FINAL STATE ---")
+    print(f"Fetched {len(final_state['raw_data'])} papers.")
+    print(f"Generated {len(final_state['summaries'])} summaries.")
