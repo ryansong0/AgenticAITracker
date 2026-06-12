@@ -33,6 +33,13 @@ def summarizer_node(state: TrackerState):
     summaries = [f"Summary of {paper['title']}" for paper in state['raw_data']]
     return {"summaries": summaries}
 
+# if "agentic" is in the summary, analyze it further
+def route_relevance(state: TrackerState):
+    last_summary = state['summaries'][-1].lower()
+    if "agentic" in last_summary:
+        return "analyze"
+    return "end"
+
 # building the graph
 workflow = StateGraph(TrackerState)
 
