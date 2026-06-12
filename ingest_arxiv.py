@@ -12,6 +12,7 @@ llm = ChatOllama(
 ) 
 
 class RouteDecision(BaseModel):
+    reasoning: str = Field(description = "Brief explanation of why the paper is relevant or not.")
     decision: Literal["relevant", "irrelevant"] = Field(description = "Must be 'relevant' or 'irrelevant'")
 
 structured_llm = llm.with_structured_output(RouteDecision)
