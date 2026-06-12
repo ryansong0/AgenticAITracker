@@ -1,5 +1,12 @@
 import arxiv
 import json
+from typing import TypedDict, List
+from langgraph.graph import StateGraph, START, END
+
+class TrackerState(TypedDict):
+    raw_data: List[dict] # What you fetch
+    summaries: List[str] # What your LLM adds
+    novelty_scores: List[float] # What your analyzer adds
 
 def fetch_arxiv_papers(query, max_results = 3):
     search = arxiv.Search(
