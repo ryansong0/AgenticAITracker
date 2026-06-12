@@ -40,6 +40,11 @@ def route_relevance(state: TrackerState):
         return "analyze"
     return "end"
 
+def analysis_node(state: TrackerState):
+    print("--- PERFORMING DEEP ANALYSIS ---")
+    state['novelty_scores'].append(0.95) # fake score
+    return {"novelty_scores": state['novelty_scores']}
+
 # building the graph
 workflow = StateGraph(TrackerState)
 
