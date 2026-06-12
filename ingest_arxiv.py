@@ -1,5 +1,6 @@
 import arxiv
 import json
+import os
 from pydantic import BaseModel, Field
 from typing import TypedDict, List, Literal
 from langgraph.graph import StateGraph, START, END
@@ -36,12 +37,31 @@ def fetch_arxiv_papers(query, max_results = 3):
             "url": r.entry_id}
             for r in client.results(search)]
 
+def get_processed_urls():
+    if not os.path.exists("processed_papers.txt"):
+        return set()
+    with open("processed_papers.txt", "r") as f:
+        return set(line.strip() for line in f)
+
+def mark_as_processed(url):
+    with open("processed_papers.txt", "a") as f:
+        f.write(f"{url}\n")
+
 # defining the node
 def ingestion_node(state: TrackerState):
     print("--- FETCHING DATA ---")
     # call existing function here
     papers = fetch_arxiv_papers("Agentic AI") 
-    return {"raw_data": papers}
+
+    # memory of what we've seen
+    processed_urls = get_processed_urls()
+    
+    # keep papers not in processed_papers.txt
+    new_papers = [p for p in papers if p['url'] not in processed_urls]
+    
+    print(f"Found {len(new_papers)} new papers to process.")
+
+    return {"raw_data": new_papers}
 
 def summarizer_node(state: TrackerState):
     print("--- SUMMARIZING PAPERS ---")
