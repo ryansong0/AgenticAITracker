@@ -109,6 +109,15 @@ def save_to_journal(paper, decision_obj):
         f.write(f"- **Date Processed:** 2026-06-13\n\n")
         f.write("---\n")
 
+        log_entry = {
+        "title": paper['title'],
+        "decision": decision_obj.decision,
+        "reasoning": decision_obj.reasoning,
+        "date": "2026-06-13"
+    }
+    with open("research_log.jsonl", "a") as f:
+        f.write(json.dumps(log_entry) + "\n")
+
 # building the graph
 workflow = StateGraph(TrackerState)
 
