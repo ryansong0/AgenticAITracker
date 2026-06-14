@@ -78,6 +78,8 @@ def route_relevance(state: TrackerState):
     print(f"--- LLM Reasoning: {decision_obj.reasoning} ---")
     print(f"--- Decision: {decision_obj.decision} ---")  
 
+    state['last_decision'] = decision_obj
+
     if decision_obj.decision == "relevant":      
         return "analyze"
     return "end"
