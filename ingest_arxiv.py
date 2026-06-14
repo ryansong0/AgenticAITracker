@@ -23,6 +23,7 @@ class TrackerState(TypedDict):
     summaries: List[str] # What your LLM adds
     novelty_scores: List[float] # What your analyzer adds
     paper_content: Optional[str]
+    last_decision: Optional[RouteDecision]
 
 def fetch_arxiv_papers(query, max_results = 3):
     search = arxiv.Search(
