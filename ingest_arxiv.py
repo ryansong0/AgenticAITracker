@@ -124,9 +124,9 @@ workflow.add_edge("analyze", END)
 app = workflow.compile()
 
 if __name__ == "__main__":
-    initial_state = {"raw_data": [], "summaries": [], "novelty_scores": []}
-    final_state = app.invoke(initial_state)
+    initial_state = {"raw_data": [], "summaries": [], "novelty_scores": [], "paper_content": None}
+    current_state = app.invoke(initial_state)
     
-    print("\n--- FINAL STATE ---")
-    print(f"Fetched {len(final_state['raw_data'])} papers.")
-    print(f"Generated {len(final_state['summaries'])} summaries.")
+    for paper in current_state['raw_data']:
+        print(f"\n--- Processing: {paper['title']} ---")
+        app.invoke({"paper_content": paper['summary']})
