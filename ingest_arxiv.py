@@ -93,6 +93,16 @@ def analysis_node(state: TrackerState):
     scores.append(0.95) # fake score
     return {"novelty_scores": scores}
 
+def save_to_journal(paper, decision_obj):
+    # appending a paper summary to the research journal
+    with open("agentic_ai_journal.md", "a", encoding = "utf-8") as f:
+        f.write(f"## {paper['title']}\n")
+        f.write(f"- **URL:** {paper['url']}\n")
+        f.write(f"- **Decision:** {decision_obj.decision.upper()}\n")
+        f.write(f"- **Reasoning:** {decision_obj.reasoning}\n")
+        f.write(f"- **Date Processed:** 2026-06-13\n\n")
+        f.write("---\n")
+
 # building the graph
 workflow = StateGraph(TrackerState)
 
