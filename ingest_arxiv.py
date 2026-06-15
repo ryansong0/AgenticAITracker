@@ -88,6 +88,7 @@ def route_relevance(state: TrackerState):
 
 def analysis_node(state: TrackerState):
     print("--- PERFORMING DEEP ANALYSIS ---")
+    state['revision_count'] = state.get('revision_count', 0) + 1
 
     current_paper = state['raw_data'][-1]
     decision_obj = state.get('last_decision')
