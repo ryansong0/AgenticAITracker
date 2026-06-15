@@ -106,6 +106,9 @@ def evaluator_node(state: TrackerState):
     decision = state['last_decision']
     content = state['paper_content']
 
+    # get current score
+    score = state.get('eval_score', 1.0)
+
     if state['eval_score'] < 0.7:
         return "needs_revision"
     return "done"
@@ -172,6 +175,11 @@ if __name__ == "__main__":
     initial_state = {"raw_data": [], "summaries": [], "novelty_scores": [], "paper_content": None}
     current_state = app.invoke(initial_state)
     
-    for paper in current_state['raw_data']:
-        print(f"\n--- Processing: {paper['title']} ---")
-        app.invoke({"paper_content": paper['summary']})
+    app.invoke({
+        "raw_data": [], 
+        "summaries": [], 
+        "novelty_scores": [], 
+        "paper_content": None,
+        "eval_score": 1.0
+    })
+    print("--- Research Session Complete ---")
