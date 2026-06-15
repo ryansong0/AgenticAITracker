@@ -105,13 +105,17 @@ def evaluator_node(state: TrackerState):
     # retrieve the last decision and raw content
     decision = state['last_decision']
     content = state['paper_content']
+
+    if state['eval_score'] < 0.7:
+        return "needs_revision"
+    return "done"
     
     # prompt the LLM to act as a judge
     prompt = f"Evaluate the reasoning: '{decision.reasoning}'. Content: {content}. Return a float score (0-1) and a critique."
     
     return {"eval_score": 0.95, "eval_critique": "Analysis is well-grounded."}
 
-def save_to_journal(paper, decision_obj):
+def save_to_journal(paper, decision_obj, eval_score, eval_critique):
     # appending a paper summary to the research journal
     with open("agentic_ai_journal.md", "a", encoding = "utf-8") as f:
         f.write(f"## {paper['title']}\n")
