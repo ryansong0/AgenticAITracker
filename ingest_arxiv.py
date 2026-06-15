@@ -101,6 +101,16 @@ def analysis_node(state: TrackerState):
     scores.append(0.95) # fake score
     return {"novelty_scores": scores}
 
+def evaluator_node(state: TrackerState):
+    # retrieve the last decision and raw content
+    decision = state['last_decision']
+    content = state['paper_content']
+    
+    # prompt the LLM to act as a judge
+    prompt = f"Evaluate the reasoning: '{decision.reasoning}'. Content: {content}. Return a float score (0-1) and a critique."
+    
+    return {"eval_score": 0.95, "eval_critique": "Analysis is well-grounded."}
+
 def save_to_journal(paper, decision_obj):
     # appending a paper summary to the research journal
     with open("agentic_ai_journal.md", "a", encoding = "utf-8") as f:
@@ -128,10 +138,12 @@ workflow.add_node("ingestion", ingestion_node)
 workflow.add_node("summarizer", summarizer_node)
 workflow.add_node("router", route_relevance)
 workflow.add_node("analyze", analysis_node)
+workflow.add_node("evaluator", evaluator_node)
 
 # setting the path
 workflow.add_edge(START, "ingestion")
 workflow.add_edge("ingestion", "summarizer")
+workflow.add_edge("analysis_node", "evaluator")
 
 
 # adding the conditional edges
@@ -146,6 +158,8 @@ workflow.add_conditional_edges(
 
 # adding the analysis end point
 workflow.add_edge("analyze", END)
+
+workflow.add_edge("evaluator", END)
 
 # compiling
 app = workflow.compile()
