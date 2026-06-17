@@ -2,7 +2,7 @@ import arxiv
 import json
 import os
 from pydantic import BaseModel, Field
-from typing import TypedDict, List, Literal
+from typing import TypedDict, List, Literal, Optional
 from langgraph.graph import StateGraph, START, END
 from langchain_ollama import ChatOllama
 from datetime import datetime
@@ -69,8 +69,9 @@ def ingestion_node(state: TrackerState):
 
 def summarizer_node(state: TrackerState):
     print("--- SUMMARIZING PAPERS ---")
-    summaries = [f"Summary of {paper['title']}" for paper in state['raw_data']]
-    return {"summaries": summaries}
+    paper = state['raw_data'][0]
+    summaries = f"Summary of {paper['title']}: {paper['summary']}]
+    return {"summaries": summaries, "paper_content": summaries}
 
 # if "agentic" is in the summary, analyze it further
 def route_relevance(state: TrackerState):
