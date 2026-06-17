@@ -151,7 +151,6 @@ workflow.add_node("evaluator", evaluator_node)
 # setting the path
 workflow.add_edge(START, "ingestion")
 workflow.add_edge("ingestion", "summarizer")
-workflow.add_edge("analysis_node", "evaluator")
 
 
 # adding the conditional edges
@@ -167,6 +166,7 @@ workflow.add_conditional_edges(
 # adding the analysis end point
 workflow.add_edge("analyze", END)
 
+workflow.add_edge("analyze", "evaluator")
 workflow.add_edge("evaluator", END)
 
 # compiling
