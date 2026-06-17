@@ -70,8 +70,12 @@ def ingestion_node(state: TrackerState):
 
 def summarizer_node(state: TrackerState):
     print("--- SUMMARIZING PAPERS ---")
+
+    if not state.get('raw_data'):
+        print("--- NO PAPERS TO SUMMARIZE ---")
+
     paper = state['raw_data'][0]
-    summaries = f"Summary of {paper['title']}: {paper['summary']}]
+    summaries = f"Summary of {paper['title']}: {paper['summary']}"
     return {"summaries": summaries, "paper_content": summaries}
 
 # if "agentic" is in the summary, analyze it further
@@ -88,6 +92,11 @@ def route_relevance(state: TrackerState):
     if decision_obj.decision == "relevant":      
         return "analyze"
     return "end"
+
+def route_after_ingestion(state: TrackerState):
+    if not state.get("raw_data"):
+        return END
+    return "summarizer"
 
 def analysis_node(state: TrackerState):
     print("--- PERFORMING DEEP ANALYSIS ---")
@@ -157,8 +166,11 @@ workflow.add_node("evaluator", evaluator_node)
 
 # setting the path
 workflow.add_edge(START, "ingestion")
-workflow.add_edge("ingestion", "summarizer")
 
+workflow.add_conditional_edges("ingestion", route_after_ingestion, {
+    "summarizer": "summarizer",
+    END: END
+})
 
 # adding the conditional edges
 workflow.add_conditional_edges(
