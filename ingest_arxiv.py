@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from typing import TypedDict, List, Literal
 from langgraph.graph import StateGraph, START, END
 from langchain_ollama import ChatOllama
+from datetime import datetime
 
 llm = ChatOllama(
     model = "llama3.2",
