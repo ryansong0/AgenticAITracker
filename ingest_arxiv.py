@@ -132,9 +132,11 @@ def save_to_journal(paper, decision_obj, eval_score, eval_critique):
 
         log_entry = {
         "title": paper['title'],
+        "url": paper['url'],
         "decision": decision_obj.decision,
         "reasoning": decision_obj.reasoning,
         "eval_score": eval_score,
+        "eval_critique": eval_critique,
         "date": "2026-06-13"
     }
     with open("research_log.jsonl", "a") as f:
