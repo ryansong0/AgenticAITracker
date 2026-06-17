@@ -125,6 +125,8 @@ def save_to_journal(paper, decision_obj, eval_score, eval_critique):
         f.write(f"- **URL:** {paper['url']}\n")
         f.write(f"- **Decision:** {decision_obj.decision.upper()}\n")
         f.write(f"- **Reasoning:** {decision_obj.reasoning}\n")
+        f.write(f"- **Score:** {eval_score}\n")
+        f.write(f"- **Critique:** {eval_critique}\n")
         f.write(f"- **Date Processed:** 2026-06-13\n\n")
         f.write("---\n")
 
@@ -132,6 +134,7 @@ def save_to_journal(paper, decision_obj, eval_score, eval_critique):
         "title": paper['title'],
         "decision": decision_obj.decision,
         "reasoning": decision_obj.reasoning,
+        "eval_score": eval_score,
         "date": "2026-06-13"
     }
     with open("research_log.jsonl", "a") as f:
