@@ -55,17 +55,18 @@ def mark_as_processed(url):
 def ingestion_node(state: TrackerState):
     print("--- FETCHING DATA ---")
     # call existing function here
-    papers = fetch_arxiv_papers("Agentic AI") 
+    papers = fetch_arxiv_papers("Agentic AI", max_results = 3) 
 
     # memory of what we've seen
     processed_urls = get_processed_urls()
     
     # keep papers not in processed_papers.txt
     new_papers = [p for p in papers if p['url'] not in processed_urls]
-    
-    print(f"Found {len(new_papers)} new papers to process.")
 
-    return {"raw_data": new_papers}
+    if not new_papers:
+        return {"raw_data": []}
+    
+    return {"raw_data": new_papers[0]}
 
 def summarizer_node(state: TrackerState):
     print("--- SUMMARIZING PAPERS ---")
