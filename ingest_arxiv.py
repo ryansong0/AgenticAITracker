@@ -89,13 +89,15 @@ def summarizer_node(state: TrackerState):
 # if "agentic" is in the summary, analyze it further
 def route_relevance(state: TrackerState):
     content = state.get('paper_content') or ""
+
+    if not content:
+        return "end"
+
     prompt = f"Analyze the following paper content and decide if it is relevant to 'Agentic AI': \n\n{content}"
     decision_obj = structured_llm.invoke(prompt)
 
     print(f"--- LLM Reasoning: {decision_obj.reasoning} ---")
     print(f"--- Decision: {decision_obj.decision} ---")  
-
-    state['last_decision'] = decision_obj
 
     if decision_obj.decision == "relevant":      
         return "analyze"
