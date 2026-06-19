@@ -94,14 +94,23 @@ def route_relevance(state: TrackerState):
     if not content:
         return "end"
 
-    prompt = f"Analyze the following paper content and decide if it is relevant to 'Agentic AI': \n\n{content}"
-    decision_obj = structured_llm.invoke(prompt)
+    prompt = (
+        f"Analyze the following paper content and decide if it is relevant to 'Agentic AI'. "
+        f"Output must be a valid JSON object with 'reasoning' and 'decision' fields. "
+        f"The 'decision' field must be either 'relevant' or 'irrelevant'.\n\n"
+        f"Content: {content[:1000]}"
+    )
+    try:
+        decision_obj = structured_llm.invoke(prompt)
+        state['last_decision'] = decision_obj
 
-    logger.info(f"--- LLM Reasoning: {decision_obj.reasoning} ---")
-    logger.info(f"--- Decision: {decision_obj.decision} ---")  
+        logger.info(f"--- LLM Reasoning: {decision_obj.reasoning} ---")
+        logger.info(f"--- Decision: {decision_obj.decision} ---")  
 
-    if decision_obj.decision == "relevant":      
-        return "analyze"
+        if decision_obj.decision == "relevant":      
+            return "analyze"
+    except Exception as e:
+        logger.info(f"--- LLM Parsing Error: {e} ---")
     return "end"
 
 def route_after_ingestion(state: TrackerState):
