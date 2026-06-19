@@ -76,10 +76,13 @@ def ingestion_node(state: TrackerState):
 def summarizer_node(state: TrackerState):
     print("--- SUMMARIZING PAPERS ---")
 
-    if not state.get('raw_data'):
-        print("--- NO PAPERS TO SUMMARIZE ---")
+    raw_data = state.get('raw_data', [])
 
-    paper = state['raw_data'][0]
+    if not raw_data:
+        print("--- NO PAPERS TO SUMMARIZE ---")
+        return {"summaries": [], "paper_content": ""}
+
+    paper = raw_data[0]
     summaries = f"Summary of {paper['title']}: {paper['summary']}"
     return {"summaries": summaries, "paper_content": summaries}
 
