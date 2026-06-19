@@ -182,18 +182,17 @@ workflow.add_conditional_edges("ingestion", route_after_ingestion, {
     END: END
 })
 
-# adding the conditional edges
+# connect summarizer to router
+workflow.add_edge("summarizer", "router")
+
 workflow.add_conditional_edges(
-    "summarizer",
+    "router",
     route_relevance,
     {
         "analyze": "analyze",
         "end": END
     }
 )
-
-# adding the analysis end point
-workflow.add_edge("analyze", END)
 
 workflow.add_edge("analyze", "evaluator")
 workflow.add_edge("evaluator", END)
