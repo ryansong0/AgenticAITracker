@@ -67,11 +67,8 @@ def ingestion_node(state: TrackerState):
     
     # keep papers not in processed_papers.txt
     new_papers = [p for p in papers if p['url'] not in processed_urls]
-
-    if not new_papers:
-        return {"raw_data": []}
     
-    return {"raw_data": new_papers[0]}
+    return {"raw_data": new_papers}
 
 def summarizer_node(state: TrackerState):
     print("--- SUMMARIZING PAPERS ---")
