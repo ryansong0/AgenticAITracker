@@ -1,5 +1,6 @@
 import arxiv
 import json
+import time
 import os
 from pydantic import BaseModel, Field
 from typing import TypedDict, List, Literal, Optional
@@ -34,7 +35,11 @@ def fetch_arxiv_papers(query, max_results = 3):
         max_results = max_results,
         sort_by = arxiv.SortCriterion.SubmittedDate
     )
-    client = arxiv.Client()
+    client = arxiv.Client(
+        page_size = 100,
+        delay_seconds = 3.0,
+        num_retries = 3
+    )
     return[{"title": r.title,
             "published": str(r.published.date()),
             "summary": r.summary,
