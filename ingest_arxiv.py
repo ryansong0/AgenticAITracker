@@ -7,6 +7,7 @@ from typing import TypedDict, List, Literal, Optional
 from langgraph.graph import StateGraph, START, END
 from langchain_ollama import ChatOllama
 from datetime import datetime
+from config import SEARCH_QUERY, MAX_RESULTS, LOG_FILE, URL_REGISTRY
 
 llm = ChatOllama(
     model = "llama3.2",
