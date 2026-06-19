@@ -142,6 +142,22 @@ def evaluator_node(state: TrackerState):
         
     return {"eval_score": eval_score, "eval_critique": eval_critique}
 
+def filter_node(state: TrackerState):
+    # getting the raw papers
+    papers = state.get('raw_data', [])
+    
+    # defining keywords with a "High Quality" paper for research
+    signal_keywords = ["agentic", "multi-agent", "scalability", "production"]
+    
+    # keeping only papers with one or more keywords in the summary
+    filtered_papers = [
+        p for p in papers 
+        if any(word in p['summary'].lower() for word in signal_keywords)
+    ]
+    
+    print(f"--- FILTERED: {len(papers)} -> {len(filtered_papers)} relevant papers ---")
+    return {"raw_data": filtered_papers}
+
 def save_to_journal(paper, decision_obj, eval_score, eval_critique):
     # appending a paper summary to the research journal
     with open("agentic_ai_journal.md", "a", encoding = "utf-8") as f:
