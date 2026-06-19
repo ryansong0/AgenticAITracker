@@ -161,6 +161,11 @@ def save_to_journal(paper, decision_obj, eval_score, eval_critique):
     with open("research_log.jsonl", "a") as f:
         f.write(json.dumps(log_entry) + "\n")
 
+def mark_as_processed(url):
+    """Appends a URL to the processed_papers.txt file."""
+    with open("processed_papers.txt", "a") as f:
+        f.write(f"{url}\n")
+
 # building the graph
 workflow = StateGraph(TrackerState)
 
