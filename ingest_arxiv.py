@@ -124,8 +124,8 @@ def analysis_node(state: TrackerState):
 
 def evaluator_node(state: TrackerState):
     # retrieve the last decision and raw content
-    decision = state['last_decision', 'N/A']
-    content = state['paper_content', ' ']
+    decision = state.get('last_decision')
+    content = state.get('paper_content', ' ')
     paper = state['raw_data'][-1] if state.get('raw_data') else None
 
     # get current score
