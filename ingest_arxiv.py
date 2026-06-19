@@ -2,6 +2,7 @@ import arxiv
 import json
 import time
 import os
+import logging
 from pydantic import BaseModel, Field
 from typing import TypedDict, List, Literal, Optional
 from langgraph.graph import StateGraph, START, END
@@ -14,6 +15,8 @@ llm = ChatOllama(
     num_predict = 50, 
     temperature = 0  
 ) 
+
+logger = logging.getLogger(__name__)
 
 class RouteDecision(BaseModel):
     reasoning: str = Field(description = "Brief explanation of why the paper is relevant or not.")
@@ -59,7 +62,7 @@ def mark_as_processed(url):
 
 # defining the node
 def ingestion_node(state: TrackerState):
-    print("--- FETCHING DATA ---")
+    logger.info("--- FETCHING DATA ---")
     # call existing function here
     papers = fetch_arxiv_papers("Agentic AI", max_results = 3) 
 
@@ -72,12 +75,12 @@ def ingestion_node(state: TrackerState):
     return {"raw_data": new_papers}
 
 def summarizer_node(state: TrackerState):
-    print("--- SUMMARIZING PAPERS ---")
+    logger.info("--- SUMMARIZING PAPERS ---")
 
     raw_data = state.get('raw_data', [])
 
     if not raw_data:
-        print("--- NO PAPERS TO SUMMARIZE ---")
+        logger.info("--- NO PAPERS TO SUMMARIZE ---")
         return {"summaries": [], "paper_content": ""}
 
     paper = raw_data[0]
@@ -94,8 +97,8 @@ def route_relevance(state: TrackerState):
     prompt = f"Analyze the following paper content and decide if it is relevant to 'Agentic AI': \n\n{content}"
     decision_obj = structured_llm.invoke(prompt)
 
-    print(f"--- LLM Reasoning: {decision_obj.reasoning} ---")
-    print(f"--- Decision: {decision_obj.decision} ---")  
+    logger.info(f"--- LLM Reasoning: {decision_obj.reasoning} ---")
+    logger.info(f"--- Decision: {decision_obj.decision} ---")  
 
     if decision_obj.decision == "relevant":      
         return "analyze"
@@ -107,7 +110,7 @@ def route_after_ingestion(state: TrackerState):
     return "summarizer"
 
 def analysis_node(state: TrackerState):
-    print("--- PERFORMING DEEP ANALYSIS ---")
+    logger.info("--- PERFORMING DEEP ANALYSIS ---")
     state['revision_count'] = state.get('revision_count', 0) + 1
 
     current_paper = state['raw_data'][-1]
@@ -116,7 +119,7 @@ def analysis_node(state: TrackerState):
     if current_paper and decision_obj:
         save_to_journal(current_paper, decision_obj)
         mark_as_processed(current_paper['url'])
-        print(f"--- Journal Updated: {current_paper['title']} ---")
+        logger.info(f"--- Journal Updated: {current_paper['title']} ---")
 
     scores = state.get('novelty_scores', [])
     scores.append(0.95) # fake score
@@ -138,7 +141,7 @@ def evaluator_node(state: TrackerState):
         save_to_journal(paper, decision, eval_score, eval_critique)
 
         mark_as_processed(paper['url'])
-        print(f"DEBUG: Marked {paper['url']} as processed.")
+        logger.info(f"DEBUG: Marked {paper['url']} as processed.")
         
     return {"eval_score": eval_score, "eval_critique": eval_critique}
 
@@ -155,7 +158,7 @@ def filter_node(state: TrackerState):
         if any(word in p['summary'].lower() for word in signal_keywords)
     ]
     
-    print(f"--- FILTERED: {len(papers)} -> {len(filtered_papers)} relevant papers ---")
+    logger.info(f"--- FILTERED: {len(papers)} -> {len(filtered_papers)} relevant papers ---")
     return {"raw_data": filtered_papers}
 
 def save_to_journal(paper, decision_obj, eval_score, eval_critique):
