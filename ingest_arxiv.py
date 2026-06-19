@@ -192,6 +192,7 @@ workflow = StateGraph(TrackerState)
 
 # adding the node
 workflow.add_node("ingestion", ingestion_node)
+workflow.add_node("filter", filter_node)
 workflow.add_node("summarizer", summarizer_node)
 workflow.add_node("router", route_relevance)
 workflow.add_node("analyze", analysis_node)
@@ -204,6 +205,8 @@ workflow.add_conditional_edges("ingestion", route_after_ingestion, {
     "summarizer": "summarizer",
     END: END
 })
+
+workflow.add_edge("filter", "summarizer")
 
 # connect summarizer to router
 workflow.add_edge("summarizer", "router")
