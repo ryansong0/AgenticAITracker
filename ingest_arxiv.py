@@ -225,16 +225,3 @@ workflow.add_edge("evaluator", END)
 
 # compiling
 app = workflow.compile()
-
-if __name__ == "__main__":
-    initial_state = {"raw_data": [], "summaries": [], "novelty_scores": [], "paper_content": None}
-    current_state = app.invoke(initial_state)
-    
-    app.invoke({
-        "raw_data": [], 
-        "summaries": [], 
-        "novelty_scores": [], 
-        "paper_content": None,
-        "eval_score": 1.0
-    })
-    print("--- Research Session Complete ---")
