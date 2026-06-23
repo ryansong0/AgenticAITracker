@@ -108,7 +108,7 @@ def route_relevance(state: TrackerState):
     content = state.get('paper_content') or ""
 
     if not content:
-        return "end"
+        return {"last_decision": RouteDecision(reasoning = "No content", decision = "irrelevant")}
 
     prompt = (
         f"Analyze the following paper content and decide if it is relevant to 'Agentic AI'. "
@@ -118,15 +118,21 @@ def route_relevance(state: TrackerState):
     )
     try:
         decision_obj = structured_llm.invoke(prompt)
-        state['last_decision'] = decision_obj
-
         logger.info(f"--- LLM Reasoning: {decision_obj.reasoning} ---")
         logger.info(f"--- Decision: {decision_obj.decision} ---")  
 
-        if decision_obj.decision == "relevant":      
-            return "analyze"
+        return {"last_decision": decision_obj}
+
     except Exception as e:
-        logger.info(f"--- LLM Parsing Error: {e} ---")
+        logger.error(f"--- LLM Parsing Error: {e} ---")
+    return {"last_decision": RouteDecision(reasoning = f"Error: {str(e)}", decision = "irrelevant")}
+
+def determine_next_path(state: TrackerState) -> Literal["analyze", "end"]:
+    decision_obj = state.get("last_decision")
+    
+    if decision_obj and decision_obj.decision == "relevant":
+        return "analyze"
+    
     return "end"
 
 def route_after_ingestion(state: TrackerState):
