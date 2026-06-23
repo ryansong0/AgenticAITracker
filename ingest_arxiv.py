@@ -9,6 +9,14 @@ from langgraph.graph import StateGraph, START, END
 from langchain_ollama import ChatOllama
 from datetime import datetime
 from config import SEARCH_QUERY, MAX_RESULTS, LOG_FILE, URL_REGISTRY
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger("AgenticTracker")
 
 llm = ChatOllama(
     model = "llama3.2",
