@@ -22,10 +22,13 @@ class RouteDecision(BaseModel):
     reasoning: str = Field(description = "Brief explanation of why the paper is relevant or not.")
     decision: Literal["relevant", "irrelevant"] = Field(description = "Must be 'relevant' or 'irrelevant'. Do not include extra text.")
 
+# initialize local ChatOllama instance
 base_llm = ChatOllama(model = "llama3.2", temperature = 0)
 
+# bind pydantic schema to base model
 structured_llm = base_llm.with_structured_output(RouteDecision)
 
+# this intercepts local runtime or network disconnections
 @retry(
     reraise=True,
     stop=stop_after_attempt(3), # try 3 times before giving up
