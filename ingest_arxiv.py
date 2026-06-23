@@ -16,7 +16,15 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[logging.StreamHandler()]
 )
-logger = logging.getLogger("AgenticTracker")
+logger = logging.getLogger(__name__)
+
+class RouteDecision(BaseModel):
+    reasoning: str = Field(description = "Brief explanation of why the paper is relevant or not.")
+    decision: Literal["relevant", "irrelevant"] = Field(description = "Must be 'relevant' or 'irrelevant'. Do not include extra text.")
+
+base_llm = ChatOllama(model = "llama3.2", temperature = 0)
+
+structured_llm = base_llm.with_structured_output(RouteDecision)
 
 @retry(
     reraise=True,
@@ -28,20 +36,9 @@ logger = logging.getLogger("AgenticTracker")
     )
 )
 
-def call_llm(messages, response_model=None):
-    llm = ChatOllama(
-        model = "llama3.2",
-        num_predict = 50, 
-        temperature = 0  
-    )
-
-logger = logging.getLogger(__name__)
-
-class RouteDecision(BaseModel):
-    reasoning: str = Field(description = "Brief explanation of why the paper is relevant or not.")
-    decision: Literal["relevant", "irrelevant"] = Field(description = "Must be 'relevant' or 'irrelevant'. Do not include extra text.")
-
-structured_llm = llm.with_structured_output(RouteDecision)
+def call_llm(messages, response_model = None):
+    logger.info("Routing request to local model: llama3.2")
+    return structured_llm.invoke(messages)
 
 class TrackerState(TypedDict):
     raw_data: List[dict] # What you fetch
@@ -141,31 +138,24 @@ def analysis_node(state: TrackerState):
     logger.info("--- PERFORMING DEEP ANALYSIS ---")
     state['revision_count'] = state.get('revision_count', 0) + 1
 
-    current_paper = state['raw_data'][-1]
+    current_paper = state['raw_data'][-1] if state.get('raw_data') else None
     decision_obj = state.get('last_decision')
 
     if current_paper and decision_obj:
-        save_to_journal(current_paper, decision_obj)
-        mark_as_processed(current_paper['url'])
-        logger.info(f"--- Journal Updated: {current_paper['title']} ---")
-
-    scores = state.get('novelty_scores', [])
-    scores.append(0.95) # fake score
-    return {"novelty_scores": scores}
+        scores = state.get('novelty_scores', [])
+        scores.append(0.95) # fake score
+        return {"novelty_scores": scores}
+    return {}
 
 def evaluator_node(state: TrackerState):
     # retrieve the last decision and raw content
     decision = state.get('last_decision')
-    content = state.get('paper_content', ' ')
     paper = state['raw_data'][-1] if state.get('raw_data') else None
-
-    # get current score
-    score = state.get('eval_score', 1.0)
 
     eval_score = 0.95
     eval_critique = "Analysis is well-grounded."
 
-    if paper:
+    if paper and decision:
         save_to_journal(paper, decision, eval_score, eval_critique)
 
         mark_as_processed(paper['url'])
@@ -201,7 +191,7 @@ def save_to_journal(paper, decision_obj, eval_score, eval_critique):
         f.write(f"- **Date Processed:** 2026-06-13\n\n")
         f.write("---\n")
 
-        log_entry = {
+    log_entry = {
         "title": paper['title'],
         "url": paper['url'],
         "decision": decision_obj.decision,
@@ -212,11 +202,6 @@ def save_to_journal(paper, decision_obj, eval_score, eval_critique):
     }
     with open("research_log.jsonl", "a") as f:
         f.write(json.dumps(log_entry) + "\n")
-
-def mark_as_processed(url):
-    """Appends a URL to the processed_papers.txt file."""
-    with open("processed_papers.txt", "a") as f:
-        f.write(f"{url}\n")
 
 # building the graph
 workflow = StateGraph(TrackerState)
@@ -256,3 +241,16 @@ workflow.add_edge("evaluator", END)
 
 # compiling
 app = workflow.compile()
+
+if __name__ == "__main__":
+    logger.info("Initializing Agentic AI Pipeline...")
+    initial_state = {
+        "raw_data": [],
+        "summaries": [],
+        "novelty_scores": [],
+        "paper_content": "",
+        "last_decision": None,
+        "eval_score": None,
+        "eval_critique": ""
+    }
+    app.invoke(initial_state)
