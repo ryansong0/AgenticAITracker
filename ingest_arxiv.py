@@ -235,7 +235,7 @@ workflow.add_edge("summarizer", "router")
 
 workflow.add_conditional_edges(
     "router",
-    route_relevance,
+    determine_next_path,
     {
         "analyze": "analyze",
         "end": END
