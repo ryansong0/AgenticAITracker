@@ -18,11 +18,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger("AgenticTracker")
 
-llm = ChatOllama(
-    model = "llama3.2",
-    num_predict = 50, 
-    temperature = 0  
-) 
+@retry(
+    reraise=True,
+    stop=stop_after_attempt(3), # try 3 times before giving up
+    wait=wait_exponential(multiplier=1, min=2, max=10), # wait 2s then 4s then 8s
+    before_sleep=lambda retry_state: logger.warning(
+        f"API call failed. Retrying in {retry_state.next_action.sleep}s... "
+        f"(Attempt {retry_state.attempt_number})"
+    )
+)
+
+def call_llm(messages, response_model=None):
+    llm = ChatOllama(
+        model = "llama3.2",
+        num_predict = 50, 
+        temperature = 0  
+    )
 
 logger = logging.getLogger(__name__)
 
