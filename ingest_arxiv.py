@@ -161,18 +161,17 @@ def analysis_node(state: TrackerState):
     return {}
 
 def evaluator_node(state: TrackerState):
+    logger.info("--- Evaluating and Journaling")
     # retrieve the last decision and raw content
     decision = state.get('last_decision')
-    paper = state['raw_data'][-1] if state.get('raw_data') else None
+    paper = state['raw_data'][0] if state.get('raw_data') else None
 
     eval_score = 0.95
     eval_critique = "Analysis is well-grounded."
 
     if paper and decision:
         save_to_journal(paper, decision, eval_score, eval_critique)
-
-        mark_as_processed(paper['url'])
-        logger.info(f"DEBUG: Marked {paper['url']} as processed.")
+        logger.info(f"Successfully logged {paper['title']} into research journal.")
         
     return {"eval_score": eval_score, "eval_critique": eval_critique}
 
