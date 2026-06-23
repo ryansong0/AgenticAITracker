@@ -105,9 +105,15 @@ def summarizer_node(state: TrackerState):
 
 # if "agentic" is in the summary, analyze it further
 def route_relevance(state: TrackerState):
+    raw_data = state.get('raw_data', [])
+    if not raw_data:
+        return {"last_decision": RouteDecision(reasoning = "No papers found", decision = "irrelevant")}
+    
+    current_paper = raw_data[0]
     content = state.get('paper_content') or ""
 
     if not content:
+        mark_as_processed(current_paper['url'])
         return {"last_decision": RouteDecision(reasoning = "No content", decision = "irrelevant")}
 
     prompt = (
@@ -121,6 +127,7 @@ def route_relevance(state: TrackerState):
         logger.info(f"--- LLM Reasoning: {decision_obj.reasoning} ---")
         logger.info(f"--- Decision: {decision_obj.decision} ---")  
 
+        mark_as_processed(current_paper['url'])
         return {"last_decision": decision_obj}
 
     except Exception as e:
