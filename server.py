@@ -62,6 +62,11 @@ def start_scheduler():
     logger.info("Initializing background cron scheduler loops...")
     scheduler.start()
 
+@app.on_event("shutdown")
+def stop_scheduler():
+    logger.info("Shutting down background cron scheduler loops...")
+    scheduler.shutdown()
+
 
 @app.post("/trigger", status_code=202)
 async def trigger_pipeline(payload: TriggerPipelineRequest, background_tasks: BackgroundTasks):
