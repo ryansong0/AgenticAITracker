@@ -1,4 +1,6 @@
 import logging
+import json
+import os
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
@@ -67,3 +69,29 @@ async def trigger_pipeline(payload: TriggerPipelineRequest, background_tasks: Ba
 async def health_check():
     """Simple status check for monitoring tools."""
     return {"status": "healthy", "service": "agentic-tracker-api"}
+
+@app.get("/journal", status_code = 200)
+async def get_research_journal():
+    """
+    retrieves all historically processed papers and their LLM evaluation scores 
+    directly from the local database log.
+    """
+    log_file_path = "research_log.jsonl"
+    
+    # if no papers have been successfully processed yet, return an empty list
+    if not os.path.exists(log_file_path):
+        return {"total_papers": 0, "papers": []}
+        
+    papers = []
+    try:
+        with open(log_file_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    papers.append(json.loads(line.strip()))
+                    
+        return {
+            "total_papers": len(papers),
+            "papers": papers[::-1]  # reverse the list so the newest papers show up at the top
+        }
+    except Exception as e:
+        raise HTTPException(status_code = 500, detail = f"Failed to read research log: {str(e)}")
