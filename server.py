@@ -41,10 +41,21 @@ def run_pipeline_in_background(query: str, max_results: int):
     }
     try:
         # fire the graph execution
-        result = graph_app.invoke(initial_state)
+        graph_app.invoke(initial_state)
         logger.info("Background pipeline execution completed successfully.")
     except Exception as e:
         logger.error(f"Background pipeline failed: {str(e)}")
+
+scheduler = BackgroundScheduler()
+
+scheduler.add_job(
+    run_pipeline_in_background, 
+    trigger = "interval", 
+    hours = 12, 
+    id = "arxiv_tracker_cron",
+    replace_existing = True
+)
+
 
 @app.post("/trigger", status_code=202)
 async def trigger_pipeline(payload: TriggerPipelineRequest, background_tasks: BackgroundTasks):
