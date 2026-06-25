@@ -56,6 +56,12 @@ scheduler.add_job(
     replace_existing = True
 )
 
+@app.on_event("startup")
+def start_scheduler():
+    """Starts the automation clock when the web server boots up."""
+    logger.info("Initializing background cron scheduler loops...")
+    scheduler.start()
+
 
 @app.post("/trigger", status_code=202)
 async def trigger_pipeline(payload: TriggerPipelineRequest, background_tasks: BackgroundTasks):
