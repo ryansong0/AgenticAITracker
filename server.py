@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from typing import Optional
 # import the compiled LangGraph app from your script
 from ingest_arxiv import app as graph_app
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # set up logging
 logging.basicConfig(level=logging.INFO)
@@ -14,9 +15,9 @@ logger = logging.getLogger("TrackerServer")
 
 # initialize FastAPI
 app = FastAPI(
-    title="Agentic AI Research Tracker API",
-    description="Production-grade API layer to trigger and monitor the LangGraph research ingestion pipeline.",
-    version="1.0.0"
+    title = "Agentic AI Research Tracker API",
+    description = "Production-grade API layer to trigger and monitor the LangGraph research ingestion pipeline.",
+    version = "1.0.0"
 )
 
 # define the request schema for incoming API calls
